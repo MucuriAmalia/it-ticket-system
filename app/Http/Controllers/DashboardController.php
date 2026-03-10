@@ -11,26 +11,52 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->role === 'admin') {
-            $openTickets = Ticket::where('status', 'open')->count();
-            $inProgressTickets = Ticket::where('status', 'in_progress')->count();
-            $resolvedTickets = Ticket::where('status', 'resolved')->count();
-            $closedTickets = Ticket::where('status', 'closed')->count();
-            $tickets = Ticket::latest()->take(10)->get();
-        } else {
-            $openTickets = Ticket::where('user_id', $user->id)->where('status', 'open')->count();
-            $inProgressTickets = Ticket::where('user_id', $user->id)->where('status', 'in_progress')->count();
-            $resolvedTickets = Ticket::where('user_id', $user->id)->where('status', 'resolved')->count();
-            $closedTickets = Ticket::where('user_id', $user->id)->where('status', 'closed')->count();
-            $tickets = Ticket::where('user_id', $user->id)->latest()->take(10)->get();
+        // Base query depending on role
+        $ticketQuery = Ticket::query();
+
+        if ($user->role !== 'admin') {
+            $ticketQuery->where('user_id', $user->id);
         }
 
-        return view('dashboard.index', compact(
-            'openTickets',
-            'inProgressTickets',
-            'resolvedTickets',
-            'closedTickets',
-            'tickets'
-        ));
+        // Ticket status statistics
+        $statusCounts = $ticketQuery
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(status = 'open') as open,
+                SUM(status = 'in_progress') as in_progress,
+                SUM(status = 'resolved') as resolved,
+                SUM(status = 'closed') as closed,
+                SUM(priority = 'critical') as critical
+            ")
+            ->first();
+
+        // HQ vs Branch statistics
+        $originStats = $ticketQuery
+            ->selectRaw("
+                SUM(site_type = 'hq') as hq,
+                SUM(site_type = 'branch') as branch
+            ")
+            ->first();
+
+        // Recent tickets
+        $tickets = $ticketQuery
+            ->with(['category', 'department', 'user', 'assignee'])
+            ->latest()
+            ->take(10)
+            ->get();
+
+        return view('dashboard.index', [
+            'totalTickets' => $statusCounts->total ?? 0,
+            'openTickets' => $statusCounts->open ?? 0,
+            'inProgressTickets' => $statusCounts->in_progress ?? 0,
+            'resolvedTickets' => $statusCounts->resolved ?? 0,
+            'closedTickets' => $statusCounts->closed ?? 0,
+            'criticalTickets' => $statusCounts->critical ?? 0,
+
+            'hqTickets' => $originStats->hq ?? 0,
+            'branchTickets' => $originStats->branch ?? 0,
+
+            'tickets' => $tickets,
+        ]);
     }
 }

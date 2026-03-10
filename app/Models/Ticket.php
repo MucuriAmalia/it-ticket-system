@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Ticket extends Model
 {
-     protected $fillable = [
+    protected $fillable = [
         'ticket_number',
         'title',
         'description',
@@ -16,6 +16,9 @@ class Ticket extends Model
         'user_id',
         'assigned_to',
         'department_id',
+        'site_type',
+        'source_name',
+        'extension_number',
         'resolution_notes',
     ];
 
@@ -47,5 +50,23 @@ class Ticket extends Model
     public function activityLogs()
     {
         return $this->hasMany(ActivityLog::class);
+    }
+
+    public function getSiteTypeLabelAttribute()
+    {
+        return match ($this->site_type) {
+            'hq' => 'HQ',
+            'branch' => 'Branch',
+            default => null,
+        };
+    }
+
+    public function getSourceDisplayAttribute()
+    {
+        if ($this->source_name && $this->extension_number) {
+            return "{$this->source_name} ({$this->extension_number})";
+        }
+
+        return $this->source_name ?? $this->extension_number ?? null;
     }
 }

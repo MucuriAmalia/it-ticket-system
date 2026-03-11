@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'department_id',
     ];
 
     /**
@@ -34,31 +35,36 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class);
+    }
+
+    public function assignedTickets()
+    {
+        return $this->hasMany(Ticket::class, 'assigned_to');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function activityLogs()
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
      */
-
-    public function tickets()
-{
-    return $this->hasMany(Ticket::class);
-}
-
-public function assignedTickets()
-{
-    return $this->hasMany(Ticket::class, 'assigned_to');
-}
-
-public function comments()
-{
-    return $this->hasMany(Comment::class);
-}
-
-public function activityLogs()
-{
-    return $this->hasMany(ActivityLog::class);
-}
     protected function casts(): array
     {
         return [

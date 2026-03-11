@@ -199,6 +199,16 @@
             </div>
         </div>
     </div>
+    <div class="mt-4">
+    <x-input-label for="site_type" :value="__('Site Type')" />
+
+    <select name="site_type" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+        <option value="hq">HQ</option>
+        <option value="branch">Branch</option>
+    </select>
+
+    <x-input-error :messages="$errors->get('site_type')" class="mt-2" />
+</div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

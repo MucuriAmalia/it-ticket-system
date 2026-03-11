@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ticket;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -11,15 +12,13 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        // Base query depending on role
-        $ticketQuery = Ticket::query();
+        $baseQuery = Ticket::query();
 
         if ($user->role !== 'admin') {
-            $ticketQuery->where('user_id', $user->id);
+            $baseQuery->where('user_id', $user->id);
         }
 
-        // Ticket status statistics
-        $statusCounts = $ticketQuery
+        $statusCounts = (clone $baseQuery)
             ->selectRaw("
                 COUNT(*) as total,
                 SUM(status = 'open') as open,
@@ -30,20 +29,48 @@ class DashboardController extends Controller
             ")
             ->first();
 
-        // HQ vs Branch statistics
-        $originStats = $ticketQuery
+        $originStats = (clone $baseQuery)
             ->selectRaw("
                 SUM(site_type = 'hq') as hq,
                 SUM(site_type = 'branch') as branch
             ")
             ->first();
 
-        // Recent tickets
-        $tickets = $ticketQuery
+        $tickets = (clone $baseQuery)
             ->with(['category', 'department', 'user', 'assignee'])
             ->latest()
             ->take(10)
             ->get();
+
+        $trendData = (clone $baseQuery)
+            ->select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('COUNT(*) as total')
+            )
+            ->where('created_at', '>=', now()->subDays(6)->startOfDay())
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->orderBy('date')
+            ->get();
+
+        $trendMap = $trendData->pluck('total', 'date');
+
+        $trendLabels = [];
+        $trendValues = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $formattedDate = $date->format('Y-m-d');
+
+            $trendLabels[] = $date->format('D');
+            $trendValues[] = $trendMap[$formattedDate] ?? 0;
+        }
+
+        $hqTickets = $originStats->hq ?? 0;
+        $branchTickets = $originStats->branch ?? 0;
+        $locationTotal = $hqTickets + $branchTickets;
+
+        $hqPercentage = $locationTotal > 0 ? round(($hqTickets / $locationTotal) * 100) : 0;
+        $branchPercentage = $locationTotal > 0 ? round(($branchTickets / $locationTotal) * 100) : 0;
 
         return view('dashboard.index', [
             'totalTickets' => $statusCounts->total ?? 0,
@@ -53,8 +80,13 @@ class DashboardController extends Controller
             'closedTickets' => $statusCounts->closed ?? 0,
             'criticalTickets' => $statusCounts->critical ?? 0,
 
-            'hqTickets' => $originStats->hq ?? 0,
-            'branchTickets' => $originStats->branch ?? 0,
+            'hqTickets' => $hqTickets,
+            'branchTickets' => $branchTickets,
+            'hqPercentage' => $hqPercentage,
+            'branchPercentage' => $branchPercentage,
+
+            'trendLabels' => $trendLabels,
+            'trendValues' => $trendValues,
 
             'tickets' => $tickets,
         ]);

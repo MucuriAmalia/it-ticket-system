@@ -69,4 +69,10 @@ class Ticket extends Model
 
         return $this->source_name ?? $this->extension_number ?? null;
     }
+
+    protected $casts = [
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+];
+
 }

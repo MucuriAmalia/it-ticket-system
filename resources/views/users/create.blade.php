@@ -10,7 +10,7 @@
 
             <div class="bg-white shadow rounded p-6">
 
-                <form method="POST" action="{{ route('register') }}">
+                <form method="POST" action="{{ route('users.store') }}">
                     @csrf
 
                     <!-- Name -->

@@ -102,20 +102,23 @@
                         @enderror
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block font-medium">Category</label>
-                        <select name="category_id" class="w-full border rounded p-2">
-                            <option value="">Select Category</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                                    {{ $category->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('category_id')
-                            <div class="text-red-600 text-sm">{{ $message }}</div>
-                        @enderror
-                    </div>
+<div>
+    <label for="category_id" class="block text-sm font-medium text-gray-700">Category</label>
+
+    <select name="category_id" id="category_id"
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+
+        <option value="">Select Category</option>
+
+        @foreach($categories as $category)
+            <option value="{{ $category->id }}"
+                {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                {{ $category->name }}
+            </option>
+        @endforeach
+
+    </select>
+</div>
 
                     <div class="mb-4">
                         <label class="block font-medium">Priority</label>
@@ -130,20 +133,20 @@
                         @enderror
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block font-medium">Department</label>
-                        <select name="department_id" class="w-full border rounded p-2">
-                            <option value="">Select Department</option>
-                            @foreach($departments as $department)
-                                <option value="{{ $department->id }}" {{ old('department_id') == $department->id ? 'selected' : '' }}>
-                                    {{ $department->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('department_id')
-                            <div class="text-red-600 text-sm">{{ $message }}</div>
-                        @enderror
-                    </div>
+                    <div>
+    <label for="department_id" class="block text-sm font-medium text-gray-700">Department</label>
+    <select name="department_id" id="department_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+        <option value="">Select Department</option>
+        @foreach($departments as $department)
+            <option value="{{ $department->id }}" {{ old('department_id') == $department->id ? 'selected' : '' }}>
+                {{ $department->name }}
+            </option>
+        @endforeach
+    </select>
+    @error('department_id')
+        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+    @enderror
+</div>
 
                     <div class="mb-4">
                         <label class="block font-medium">Ticket Origin</label>
@@ -199,16 +202,6 @@
             </div>
         </div>
     </div>
-    <div class="mt-4">
-    <x-input-label for="site_type" :value="__('Site Type')" />
-
-    <select name="site_type" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
-        <option value="hq">HQ</option>
-        <option value="branch">Branch</option>
-    </select>
-
-    <x-input-error :messages="$errors->get('site_type')" class="mt-2" />
-</div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

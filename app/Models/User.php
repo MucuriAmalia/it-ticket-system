@@ -50,6 +50,18 @@ class User extends Authenticatable
         return $this->hasMany(Ticket::class, 'assigned_to');
     }
 
+    public function resolvedTickets()
+    {
+        return $this->hasMany(Ticket::class, 'assigned_to')
+            ->where('status', 'resolved');
+    }
+
+    public function openTickets()
+    {
+        return $this->hasMany(Ticket::class, 'assigned_to')
+            ->whereIn('status', ['open', 'in_progress']);
+    }
+
     public function comments()
     {
         return $this->hasMany(Comment::class);

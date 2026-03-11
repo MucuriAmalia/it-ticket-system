@@ -47,6 +47,14 @@
         </div>
     </div>
 
+    {{-- Technician Leaderboard Button --}}
+<div class="mt-6 mb-6">
+    <a href="{{ route('metrics.leaderboard') }}"
+       class="inline-block bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+        Technician Leaderboard
+    </a>
+</div>
+
     {{-- Location Analytics --}}
     <div class="bg-white shadow rounded-lg p-6">
         <h3 class="text-lg font-semibold text-gray-700 mb-6">Location Analytics</h3>
@@ -103,6 +111,18 @@
         </div>
     </div>
 
+</div>
+
+<div class="bg-white shadow rounded-lg p-4 mt-6 mb-6 flex justify-between items-center">
+    <div>
+        <h3 class="text-lg font-semibold text-gray-700">Technician Performance</h3>
+        <p class="text-sm text-gray-500">View technician leaderboard based on resolved tickets.</p>
+    </div>
+
+    <a href="{{ route('metrics.leaderboard') }}"
+       class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+        View Leaderboard
+    </a>
 </div>
 
 {{-- Recent Tickets --}}

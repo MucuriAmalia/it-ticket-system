@@ -14,9 +14,11 @@ class DashboardController extends Controller
 
         $baseQuery = Ticket::query();
 
-        if ($user->role !== 'admin') {
-            $baseQuery->where('user_id', $user->id);
-        }
+if ($user->role === 'technician') {
+    $baseQuery->where('assigned_to', $user->id);
+} elseif ($user->role !== 'admin') {
+    $baseQuery->where('user_id', $user->id);
+}
 
         $statusCounts = (clone $baseQuery)
             ->selectRaw("

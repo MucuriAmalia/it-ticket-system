@@ -108,20 +108,23 @@
                placeholder="Example: 726 or 803">
     </div>
 
-    @if(auth()->user()->role === 'admin')
-        <div class="mb-4">
-            <label class="block font-medium">Assign Technician</label>
-            <select name="assigned_to" class="w-full border rounded p-2">
-                <option value="">Unassigned</option>
-                @foreach($admins as $admin)
-                    <option value="{{ $admin->id }}"
-                        {{ $ticket->assigned_to == $admin->id ? 'selected' : '' }}>
-                        {{ $admin->name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-    @endif
+@if(auth()->user()->role === 'admin')
+    <div class="mb-4">
+        <label class="block font-medium">Assign Technician</label>
+
+        <select name="assigned_to" class="w-full border rounded p-2">
+            <option value="">Unassigned</option>
+
+            @foreach($technicians as $technician)
+                <option value="{{ $technician->id }}"
+                    {{ $ticket->assigned_to == $technician->id ? 'selected' : '' }}>
+                    {{ $technician->name }}
+                </option>
+            @endforeach
+
+        </select>
+    </div>
+@endif
 
 @if(auth()->user()->role === 'admin' || $ticket->assigned_to === auth()->id())
     <div class="mb-4">

@@ -20,7 +20,9 @@ public function index(Request $request)
 
     $query = Ticket::with(['category', 'user', 'assignee', 'department'])->latest();
 
-    if ($user->role !== 'admin') {
+    if ($user->role === 'technician') {
+        $query->where('assigned_to', $user->id);
+    } elseif ($user->role !== 'admin') {
         $query->where('user_id', $user->id);
     }
 
@@ -141,14 +143,21 @@ public function store(Request $request)
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
-    {
-         $this->authorizeTicket($ticket);
+public function show(string $id)
+{
+    $ticket = Ticket::with([
+        'category',
+        'user',
+        'assignee',
+        'department',
+        'comments.user',
+        'activityLogs.user'
+    ])->findOrFail($id);
 
-        $ticket->load(['category', 'user', 'assignee', 'department', 'comments.user', 'activityLogs.user']);
+    $this->authorizeTicket($ticket);
 
-        return view('tickets.show', compact('ticket'));
-    }
+    return view('tickets.show', compact('ticket'));
+}
 
     /**
      * Show the form for editing the specified resource.
@@ -163,14 +172,15 @@ public function edit(string $id)
     $departments = Department::orderBy('name')->get();
 
     // Users who can be assigned tickets (admins / technicians)
-    $admins = User::whereIn('role', ['admin', 'technician'])->orderBy('name')->get();
-
-    return view('tickets.edit', compact(
-        'ticket',
-        'categories',
-        'departments',
-        'admins'
-    ));
+$technicians = User::where('role', 'technician')
+    ->orderBy('name')
+    ->get();
+return view('tickets.edit', compact(
+    'ticket',
+    'categories',
+    'departments',
+    'technicians'
+));
 }
 
     /**
@@ -324,22 +334,25 @@ private function authorizeTicket(Ticket $ticket)
 {
     $user = auth()->user();
 
-    // Admins can access all tickets
+    // Admin can access all tickets
     if ($user->role === 'admin') {
         return;
     }
 
-    // Ticket owner can access their ticket
+    // Technician can only access tickets assigned to them
+    if ($user->role === 'technician') {
+        if ($ticket->assigned_to === $user->id) {
+            return;
+        }
+
+        abort(403, 'Unauthorized access to this ticket.');
+    }
+
+    // Normal user can only access tickets they created
     if ($ticket->user_id === $user->id) {
         return;
     }
 
-    // Assigned technician can access the ticket
-    if ($ticket->assigned_to === $user->id) {
-        return;
-    }
-
-    // Otherwise deny access
     abort(403, 'Unauthorized access to this ticket.');
 }
 }
